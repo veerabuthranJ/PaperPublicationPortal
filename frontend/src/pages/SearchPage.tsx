@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { facultyService, Faculty } from '../services/faculty.service';
 import { publicationsService, SearchParams } from '../services/publications.service';
 import { departmentsService } from '../services/departments.service';
-import { Search, User, BookOpen, Building2 } from 'lucide-react';
+import { authService } from '../services/auth.service';
+import { Search, User, BookOpen, Building2, LogOut } from 'lucide-react';
 
 export function SearchPage() {
   const navigate = useNavigate();
@@ -23,6 +24,11 @@ export function SearchPage() {
     if (e.key === 'Enter') {
       handleSearch();
     }
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/login');
   };
 
   // Auto-search when filters change
@@ -71,12 +77,28 @@ export function SearchPage() {
       {/* Header */}
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-blue-600">
-            College Publications Portal
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Search research publications by faculty members
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-blue-600">
+                College Publications Portal
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Search research publications by faculty members
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">
+                Welcome, <span className="font-semibold">{authService.getCurrentUser()?.username}</span>
+              </span>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 

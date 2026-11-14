@@ -1,0 +1,25 @@
+services:
+  # Backend API Service
+  - type: web
+    name: college-publications-api
+    runtime: node
+    region: oregon
+    plan: starter
+    buildCommand: cd backend && npm install && npx prisma generate
+    startCommand: cd backend && npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        sync: false  # Set this in Render dashboard
+      - key: REDIS_HOST
+        sync: false  # Set this in Render dashboard
+      - key: REDIS_PORT
+        value: 6379
+      - key: REDIS_PASSWORD
+        sync: false  # Set this in Render dashboard
+      - key: FRONTEND_URL
+        sync: false  # Set this in Render dashboard after deploying frontend
+    healthCheckPath: /api/departments
