@@ -1,0 +1,157 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Department {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  faculty Faculty[]
+
+  @@map("departments")
+}
+
+model Faculty {
+  id               String    @id @default(uuid())
+  firstName        String    @map("first_name")
+  lastName         String    @map("last_name")
+  email            String    @unique
+  departmentId     String?   @map("department_id")
+  title            String? // Professor, Associate Professor, etc.
+  profileImageUrl  String?   @map("profile_image_url")
+  bio              String?
+  googleScholarId  String?   @map("google_scholar_id")
+  orcidId          String?   @map("orcid_id")
+  ieeeAuthorId     String?   @map("ieee_author_id")
+  scopusAuthorId   String?   @map("scopus_author_id")
+  isActive         Boolean   @default(true) @map("is_active")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  department       Department? @relation(fields: [departmentId], references: [id])
+  authors          Author[]
+  verifiedPublications Publication[] @relation("VerifiedBy")
+  scrapingJobs     ScrapingJob[]
+
+  @@index([email])
+  @@index([departmentId])
+  @@map("faculty")
+}
+
+model Publication {
+  id               String    @id @default(uuid())
+  title            String
+  abstract         String?
+  publicationYear  Int       @map("publication_year")
+  publicationDate  DateTime? @map("publication_date")
+  venueType        String?   @map("venue_type") // journal, conference, workshop
+  venueName        String?   @map("venue_name")
+  volume           String?
+  issue            String?
+  pages            String?
+  doi              String?   @unique
+  isbn             String?
+  issn             String?
+  pdfUrl           String?   @map("pdf_url")
+  externalUrl      String?   @map("external_url")
+  citationCount    Int       @default(0) @map("citation_count")
+  source           String? // ieee_xplore, google_scholar, semantic_scholar, manual
+  sourceId         String?   @map("source_id")
+  rawMetadata      Json?     @map("raw_metadata")
+  isVerified       Boolean   @default(false) @map("is_verified")
+  verifiedBy       String?   @map("verified_by")
+  verifiedAt       DateTime? @map("verified_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  verifier         Faculty?  @relation("VerifiedBy", fields: [verifiedBy], references: [id])
+  authors          PublicationAuthor[]
+  keywords         PublicationKeyword[]
+
+  @@index([publicationYear])
+  @@index([doi])
+  @@map("publications")
+}
+
+model Author {
+  id          String   @id @default(uuid())
+  name        String
+  affiliation String?
+  email       String?
+  facultyId   String?  @map("faculty_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  faculty      Faculty?  @relation(fields: [facultyId], references: [id])
+  publications PublicationAuthor[]
+
+  @@index([facultyId])
+  @@map("authors")
+}
+
+model PublicationAuthor {
+  id              String   @id @default(uuid())
+  publicationId   String   @map("publication_id")
+  authorId        String   @map("author_id")
+  authorPosition  Int?     @map("author_position") // 1st author, 2nd author, etc.
+  isCorresponding Boolean  @default(false) @map("is_corresponding")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  publication Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  author      Author      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([publicationId, authorId])
+  @@index([publicationId])
+  @@index([authorId])
+  @@map("publication_authors")
+}
+
+model Keyword {
+  id         String   @id @default(uuid())
+  keyword    String   @unique
+  normalized String // lowercase, trimmed
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  publications PublicationKeyword[]
+
+  @@map("keywords")
+}
+
+model PublicationKeyword {
+  publicationId String @map("publication_id")
+  keywordId     String @map("keyword_id")
+
+  publication Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  keyword     Keyword     @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@id([publicationId, keywordId])
+  @@map("publication_keywords")
+}
+
+model ScrapingJob {
+  id                  String    @id @default(uuid())
+  facultyId           String?   @map("faculty_id")
+  source              String
+  status              String // pending, running, completed, failed
+  startedAt           DateTime? @map("started_at")
+  completedAt         DateTime? @map("completed_at")
+  publicationsFound   Int       @default(0) @map("publications_found")
+  publicationsAdded   Int       @default(0) @map("publications_added")
+  publicationsUpdated Int       @default(0) @map("publications_updated")
+  errorMessage        String?   @map("error_message")
+  metadata            Json?
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  faculty Faculty? @relation(fields: [facultyId], references: [id])
+
+  @@map("scraping_jobs")
+}
