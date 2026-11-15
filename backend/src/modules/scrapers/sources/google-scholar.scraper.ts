@@ -175,17 +175,26 @@ export class GoogleScholarScraper extends BaseScraper {
         }
       });
 
-      // Check if there are more pages
-      const showMoreBtn = $('.gsc_a_e').length > 0;
-      if (showMoreBtn && results.length < (options?.maxResults || 1000)) {
-        // Could implement pagination here if needed
-        this.logger.log('More publications available, fetching next page...');
+      const maxResults = options?.maxResults || 1000;
+      let offset = results.length;
+      while (results.length >= 100 && results.length < maxResults) {
+        this.logger.log(`Fetching next Google Scholar page at offset ${offset}`);
         const nextPageResults = await this.fetchNextPage(
           scholarId,
-          results.length,
+          offset,
           options,
         );
-        results.push(...nextPageResults);
+        if (nextPageResults.length === 0) {
+          break;
+        }
+
+        const remaining = maxResults - results.length;
+        results.push(...nextPageResults.slice(0, remaining));
+        offset += nextPageResults.length;
+
+        if (nextPageResults.length < 100) {
+          break;
+        }
       }
     } catch (error) {
       this.logger.error(`Error fetching Google Scholar profile: ${error.message}`);
