@@ -82,8 +82,6 @@ export class PublicationsService {
       limit = 20,
     } = searchDto;
 
-    const skip = (page - 1) * limit;
-
     // Build where clause
     const where: Prisma.PublicationWhereInput = {
       AND: [],
@@ -174,47 +172,88 @@ export class PublicationsService {
       delete where.AND;
     }
 
-    // Execute query
-    const [publications, total] = await Promise.all([
-      this.prisma.publication.findMany({
-        where,
-        include: {
-          authors: {
-            include: {
-              author: {
-                include: {
-                  faculty: {
-                    select: {
-                      id: true,
-                      firstName: true,
-                      lastName: true,
-                      department: true,
+    const matchingPublications = await this.prisma.publication.findMany({
+      where,
+      select: {
+        id: true,
+        title: true,
+        publicationYear: true,
+        citationCount: true,
+      },
+      orderBy: [
+        { publicationYear: 'desc' },
+        { title: 'asc' },
+        { id: 'asc' },
+      ],
+    });
+
+    const uniquePublicationsByTitleAndYear = new Map<
+      string,
+      (typeof matchingPublications)[number]
+    >();
+    for (const publication of matchingPublications) {
+      const normalizedTitle = publication.title
+        .toLowerCase()
+        .replace(/[^\w\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const key = `${normalizedTitle}:${publication.publicationYear}`;
+      const existing = uniquePublicationsByTitleAndYear.get(key);
+
+      if (!existing || publication.citationCount > existing.citationCount) {
+        uniquePublicationsByTitleAndYear.set(key, publication);
+      }
+    }
+
+    const uniquePublications = Array.from(
+      uniquePublicationsByTitleAndYear.values(),
+    );
+    const total = uniquePublications.length;
+    const pageIds = uniquePublications
+      .slice((page - 1) * limit, page * limit)
+      .map((publication) => publication.id);
+
+    const pagePublications = pageIds.length
+      ? await this.prisma.publication.findMany({
+          where: { id: { in: pageIds } },
+          include: {
+            authors: {
+              include: {
+                author: {
+                  include: {
+                    faculty: {
+                      select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        department: true,
+                      },
                     },
                   },
                 },
               },
+              orderBy: {
+                authorPosition: 'asc',
+              },
             },
-            orderBy: {
-              authorPosition: 'asc',
+            keywords: {
+              include: {
+                keyword: true,
+              },
             },
           },
-          keywords: {
-            include: {
-              keyword: true,
-            },
-          },
-        },
-        orderBy: {
-          publicationYear: 'desc',
-        },
-        skip,
-        take: limit,
-      }),
-      this.prisma.publication.count({ where }),
-    ]);
+        })
+      : [];
+    const pagePublicationsById = new Map(
+      pagePublications.map((publication) => [publication.id, publication]),
+    );
+    const publicationsInOrder = pageIds.flatMap((id) => {
+      const publication = pagePublicationsById.get(id);
+      return publication ? [publication] : [];
+    });
 
     return {
-      data: publications,
+      data: publicationsInOrder,
       meta: {
         total,
         page,
