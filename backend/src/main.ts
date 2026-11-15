@@ -10,12 +10,19 @@ async function bootstrap() {
   const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
+    'https://paper-publication-portal.vercel.app',
   ];
 
   // Add production frontend URL from environment
-  if (process.env.FRONTEND_URL) {
-    allowedOrigins.push(process.env.FRONTEND_URL);
+  const frontendUrl = process.env.FRONTEND_URL?.trim().replace(/\/+$/, '');
+  if (frontendUrl) {
+    allowedOrigins.push(frontendUrl);
+    console.log('✅ Added FRONTEND_URL to CORS:', frontendUrl);
+  } else {
+    console.log('⚠️  FRONTEND_URL not set in environment');
   }
+
+  console.log('🔒 CORS allowed origins:', allowedOrigins);
 
   app.enableCors({
     origin: allowedOrigins,
