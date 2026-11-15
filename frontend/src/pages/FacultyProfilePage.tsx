@@ -1,7 +1,11 @@
+import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { facultyService } from '../services/faculty.service';
-import { publicationsService } from '../services/publications.service';
+import {
+  publicationsService,
+  type Publication,
+} from '../services/publications.service';
 import { ArrowLeft, Mail, BookOpen, TrendingUp, Calendar } from 'lucide-react';
 
 export function FacultyProfilePage() {
@@ -22,9 +26,28 @@ export function FacultyProfilePage() {
 
   const { data: publications, isLoading: publicationsLoading } = useQuery({
     queryKey: ['publications', 'faculty', id],
-    queryFn: () => publicationsService.search({ facultyId: id, limit: 100 }),
+    queryFn: () => publicationsService.search({ facultyId: id, limit: 500 }),
     enabled: !!id,
   });
+
+  const uniquePublications = useMemo(() => {
+    const byTitleAndYear = new Map<string, Publication>();
+    for (const publication of publications?.data ?? []) {
+      const normalizedTitle = publication.title
+        .toLowerCase()
+        .replace(/[^\w\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const key = `${normalizedTitle}:${publication.publicationYear}`;
+      const existing = byTitleAndYear.get(key);
+
+      if (!existing || publication.citationCount > existing.citationCount) {
+        byTitleAndYear.set(key, publication);
+      }
+    }
+
+    return Array.from(byTitleAndYear.values());
+  }, [publications?.data]);
 
   if (facultyLoading) {
     return (
@@ -152,7 +175,7 @@ export function FacultyProfilePage() {
         {/* Publications List */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-2xl font-bold text-gray-900 mb-6">
-            Publications ({publications?.meta.total || 0})
+            Publications ({stats?.totalPublications ?? uniquePublications.length})
           </h3>
 
           {publicationsLoading ? (
@@ -162,7 +185,7 @@ export function FacultyProfilePage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {publications?.data.map((pub) => (
+              {uniquePublications.map((pub) => (
                 <div
                   key={pub.id}
                   className="border-l-4 border-blue-500 pl-4 py-2 hover:bg-gray-50 transition"
@@ -222,7 +245,7 @@ export function FacultyProfilePage() {
                 </div>
               ))}
 
-              {publications?.data.length === 0 && (
+              {uniquePublications.length === 0 && (
                 <div className="text-center py-12">
                   <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600">No publications found</p>

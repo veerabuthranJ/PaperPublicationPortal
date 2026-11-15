@@ -179,9 +179,22 @@ export class FacultyService {
     );
 
     // Deduplicate publications by ID
-    const uniquePublicationsMap = new Map();
+    const uniquePublicationsMap = new Map<
+      string,
+      (typeof allPublications)[number]
+    >();
     allPublications.forEach((pub) => {
-      uniquePublicationsMap.set(pub.id, pub);
+      const normalizedTitle = pub.title
+        .toLowerCase()
+        .replace(/[^\w\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const key = `${normalizedTitle}:${pub.publicationYear}`;
+      const existing = uniquePublicationsMap.get(key);
+
+      if (!existing || pub.citationCount > existing.citationCount) {
+        uniquePublicationsMap.set(key, pub);
+      }
     });
     const publications = Array.from(uniquePublicationsMap.values());
 
