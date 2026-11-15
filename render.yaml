@@ -4,8 +4,8 @@ services:
     name: college-publications-api
     runtime: node
     region: oregon
-    plan: starter
-    buildCommand: cd backend && npm install --include=dev && npx prisma generate && npm run build
+    plan: free
+    buildCommand: cd backend && npm install --include=dev && npx prisma generate && npx prisma db push --accept-data-loss && npm run build
     startCommand: cd backend && node dist/src/main.js
     envVars:
       - key: NODE_ENV
