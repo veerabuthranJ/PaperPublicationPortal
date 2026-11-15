@@ -1,0 +1,45 @@
+# Copy these Environment Variables to Render Dashboard
+# Go to: https://dashboard.render.com -> Your Service -> Environment
+
+# ============================================
+# REQUIRED - Database
+# ============================================
+DATABASE_URL=postgresql://neondb_owner:npg_fLphIO6BcV2w@ep-mute-paper-betya2p2-pooler.c-9.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+# ============================================
+# REQUIRED - Application Settings
+# ============================================
+NODE_ENV=production
+PORT=3000
+
+# ============================================
+# REQUIRED - Security
+# ============================================
+JWT_SECRET=WWdS+Mc/81s84btFxn48N546CnQcu8uh3l9/fdbmA24=
+JWT_EXPIRES_IN=7d
+
+# ============================================
+# REQUIRED - CORS (Update after frontend deployment)
+# ============================================
+FRONTEND_URL=http://localhost:5174
+
+# ============================================
+# OPTIONAL - Redis (Leave blank if not using)
+# ============================================
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# ============================================
+# OPTIONAL - Institution Settings
+# ============================================
+INSTITUTION_NAME=Your College Name
+INSTITUTION_DOMAINS=college.edu
+INSTITUTION_ALIASES=College
+
+# ============================================
+# OPTIONAL - API Keys (can be added later)
+# ============================================
+IEEE_API_KEY=
+SERPAPI_KEY=
+SEMANTIC_SCHOLAR_API_KEY=
