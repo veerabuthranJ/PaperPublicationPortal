@@ -17,8 +17,10 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "moduleResolution": "node",
     "paths": {
       "@/*": ["src/*"]
     }
-  }
+  },
+  "exclude": ["neon.ts", "node_modules", "dist"]
 }
