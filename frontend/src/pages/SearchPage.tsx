@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { facultyService, Faculty } from '../services/faculty.service';
+import { facultyService } from '../services/faculty.service';
 import { publicationsService, SearchParams } from '../services/publications.service';
 import { departmentsService } from '../services/departments.service';
 import { authService } from '../services/auth.service';
