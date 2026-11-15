@@ -177,7 +177,11 @@ export class GoogleScholarScraper extends BaseScraper {
 
       const maxResults = options?.maxResults || 1000;
       let offset = results.length;
-      while (results.length >= 100 && results.length < maxResults) {
+      const seenPublicationKeys = new Set(
+        results.map((result) => this.getPublicationKey(result)),
+      );
+
+      while (offset >= 100 && results.length < maxResults) {
         this.logger.log(`Fetching next Google Scholar page at offset ${offset}`);
         const nextPageResults = await this.fetchNextPage(
           scholarId,
@@ -188,19 +192,41 @@ export class GoogleScholarScraper extends BaseScraper {
           break;
         }
 
-        const remaining = maxResults - results.length;
-        results.push(...nextPageResults.slice(0, remaining));
-        offset += nextPageResults.length;
-
-        if (nextPageResults.length < 100) {
+        const newPageResults = nextPageResults.filter((result) => {
+          const key = this.getPublicationKey(result);
+          if (seenPublicationKeys.has(key)) {
+            return false;
+          }
+          seenPublicationKeys.add(key);
+          return true;
+        });
+        if (newPageResults.length === 0) {
           break;
         }
+
+        const remaining = maxResults - results.length;
+        results.push(...newPageResults.slice(0, remaining));
+        offset += nextPageResults.length;
       }
+
+      return results.slice(0, maxResults);
     } catch (error) {
       this.logger.error(`Error fetching Google Scholar profile: ${error.message}`);
     }
 
     return results;
+  }
+
+  private getPublicationKey(
+    publication: Pick<ScraperResult, 'title' | 'publicationYear'>,
+  ): string {
+    const normalizedTitle = publication.title
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return `${normalizedTitle}:${publication.publicationYear}`;
   }
 
   private async fetchNextPage(

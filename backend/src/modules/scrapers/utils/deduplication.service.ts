@@ -63,19 +63,23 @@ export class DeduplicationService {
       );
 
       if (similarity > 0.85) {
-        // High title similarity, check author overlap
+        const exactTitleAndYear =
+          similarity === 1 &&
+          candidate.publicationYear === result.publicationYear;
+
+        // Exact title/year matches do not require author overlap.
         const authorOverlap = this.calculateAuthorOverlap(
           result.authors.map((a) => a.name),
           candidate.authors.map((pa) => pa.author.name),
         );
 
-        if (authorOverlap > 0.5) {
+        if (exactTitleAndYear || authorOverlap > 0.5) {
           const fullPublication = await this.prisma.publication.findUnique({
             where: { id: candidate.id },
           });
           return {
             publication: fullPublication,
-            matchType: 'similarity',
+            matchType: exactTitleAndYear ? 'exact_title_year' : 'similarity',
             similarity,
             authorOverlap,
           };

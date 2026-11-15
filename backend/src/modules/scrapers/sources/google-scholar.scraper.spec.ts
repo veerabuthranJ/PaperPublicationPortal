@@ -33,7 +33,9 @@ describe('GoogleScholarScraper', () => {
       get: jest
         .fn()
         .mockReturnValueOnce(of({ data: createScholarPage(0, 100) }))
-        .mockReturnValueOnce(of({ data: createScholarPage(100, 42) })),
+        .mockReturnValueOnce(of({ data: createScholarPage(100, 18) }))
+        .mockReturnValueOnce(of({ data: createScholarPage(118, 24) }))
+        .mockReturnValueOnce(of({ data: createScholarPage(142, 0) })),
     };
     const module = await Test.createTestingModule({
       providers: [
@@ -70,6 +72,11 @@ describe('GoogleScholarScraper', () => {
       expect(httpService.get).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('cstart=100&pagesize=100'),
+        expect.any(Object),
+      );
+      expect(httpService.get).toHaveBeenNthCalledWith(
+        3,
+        expect.stringContaining('cstart=118&pagesize=100'),
         expect.any(Object),
       );
     } finally {
