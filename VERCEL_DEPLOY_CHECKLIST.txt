@@ -1,0 +1,115 @@
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║         VERCEL DEPLOYMENT - COPY/PASTE CHECKLIST           ║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+GO TO: https://vercel.com/veeras-projects-f736fcfe
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: ADD NEW PROJECT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Click: "Add New..." → "Project"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 2: IMPORT REPOSITORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Find: "PaperPublicationPortal"
+Click: "Import"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 3: CONFIGURE (COPY VALUES BELOW)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Project Name:
+paperpublication-portal
+
+Framework Preset:
+Vite
+
+⚠️  Root Directory (CLICK EDIT):
+frontend
+
+Build Command:
+npm run build
+
+Output Directory:
+dist
+
+Install Command:
+npm install
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 4: ENVIRONMENT VARIABLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Click: "Environment Variables" dropdown
+
+Key:
+VITE_API_URL
+
+Value:
+https://paperpublicationportal.onrender.com/api
+
+Click: "Add"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 5: DEPLOY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Click: "Deploy" button
+
+Wait: 3-5 minutes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 6: AFTER SUCCESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Copy your Vercel URL (shown after deployment)
+
+2. Update Backend:
+   Go to: https://dashboard.render.com/web/paperpublicationportal
+
+   Environment tab → Find FRONTEND_URL
+
+   Update to: (your Vercel URL)
+
+   Save Changes
+
+3. Test:
+   Open your Vercel URL
+   Login: admin / admin123
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ CHECKLIST:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[ ] Clicked "Add New" → "Project"
+[ ] Selected PaperPublicationPortal repository
+[ ] Set Root Directory to: frontend
+[ ] Added VITE_API_URL environment variable
+[ ] Clicked "Deploy"
+[ ] Copied Vercel URL after success
+[ ] Updated FRONTEND_URL in Render backend
+[ ] Tested login on live website
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 MOST COMMON MISTAKE:
+Forgetting to set Root Directory to "frontend"
+
+⚠️  DOUBLE CHECK THIS!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After completing these steps, share your Vercel URL and I'll help
+verify everything is working!
