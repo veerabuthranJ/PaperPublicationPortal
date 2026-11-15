@@ -3,13 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
-// Seed database on start (for free tier without shell access)
-const { seedOnStart } = require('../prisma/seed-on-start');
-
 async function bootstrap() {
-  // Seed database if empty
-  await seedOnStart();
-
   const app = await NestFactory.create(AppModule);
 
   // Enable CORS
