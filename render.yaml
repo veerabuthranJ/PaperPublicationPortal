@@ -5,8 +5,9 @@ services:
     runtime: node
     region: oregon
     plan: starter
-    buildCommand: cd backend && npm install --include=dev && npx prisma generate && npm run build
-    startCommand: cd backend && npm run start:prod
+    rootDir: backend
+    buildCommand: npm install --include=dev && npx prisma generate && npm run build
+    startCommand: npm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
