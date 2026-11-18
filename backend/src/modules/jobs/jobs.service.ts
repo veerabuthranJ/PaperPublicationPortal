@@ -42,9 +42,10 @@ export class JobsService {
 
   async scrapeFaculty(facultyId: string, sources?: string[]) {
     const defaultSources = sources || [
+      'orcid',
+      'google_scholar',
       'ieee_xplore',
       'semantic_scholar',
-      'google_scholar',
     ];
 
     const jobs = await Promise.all(

@@ -4,8 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { facultyService } from '../services/faculty.service';
 import { publicationsService, SearchParams } from '../services/publications.service';
 import { departmentsService } from '../services/departments.service';
-import { authService } from '../services/auth.service';
-import { Search, User, BookOpen, Building2, LogOut } from 'lucide-react';
+import { Search, User, BookOpen, Building2 } from 'lucide-react';
 
 export function SearchPage() {
   const navigate = useNavigate();
@@ -24,11 +23,6 @@ export function SearchPage() {
     if (e.key === 'Enter') {
       handleSearch();
     }
-  };
-
-  const handleLogout = () => {
-    authService.logout();
-    navigate('/login');
   };
 
   // Auto-search when filters change
@@ -62,7 +56,7 @@ export function SearchPage() {
   });
 
   const filteredFaculty = faculty?.filter((f) => {
-    const fullName = `${f.firstName} ${f.lastName}`.toLowerCase();
+    const fullName = `${f.firstName} ${f.lastName === '.' ? '' : f.lastName}`.toLowerCase().trim();
     const matchesSearch = activeSearchQuery
       ? fullName.includes(activeSearchQuery.toLowerCase())
       : true;
@@ -85,18 +79,6 @@ export function SearchPage() {
               <p className="text-gray-600 mt-2">
                 Search research publications by faculty members
               </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
-                Welcome, <span className="font-semibold">{authService.getCurrentUser()?.username}</span>
-              </span>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </button>
             </div>
           </div>
         </div>
@@ -238,7 +220,7 @@ export function SearchPage() {
                         <div className="flex-1">
                           <h3 className="text-xl font-semibold text-gray-900">
                             {f.title && `${f.title} `}
-                            {f.firstName} {f.lastName}
+                            {f.firstName}{f.lastName && f.lastName !== '.' ? ` ${f.lastName}` : ''}
                           </h3>
                           <p className="text-gray-600 mt-1">
                             {f.department?.name}

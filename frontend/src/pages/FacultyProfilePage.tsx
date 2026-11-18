@@ -99,7 +99,7 @@ export function FacultyProfilePage() {
             <div>
               <h2 className="text-3xl font-bold text-gray-900">
                 {faculty.title && `${faculty.title} `}
-                {faculty.firstName} {faculty.lastName}
+                {faculty.firstName}{faculty.lastName && faculty.lastName !== '.' ? ` ${faculty.lastName}` : ''}
               </h2>
               <p className="text-xl text-gray-600 mt-2">
                 {faculty.department?.name}
