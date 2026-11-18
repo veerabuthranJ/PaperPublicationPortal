@@ -44,19 +44,24 @@ export class SemanticScholarScraper extends BaseScraper {
     const results: ScraperResult[] = [];
 
     try {
-      // Step 1: Search for author
-      const authorName = this.normalizeAuthorName(faculty.firstName, faculty.lastName);
-      const authorId = await this.findAuthorId(authorName);
+      const nameVariations = this.buildNameVariations(faculty.firstName, faculty.lastName);
+      let authorId: string | null = null;
+
+      for (const name of nameVariations) {
+        authorId = await this.findAuthorId(name);
+        if (authorId) {
+          this.logger.log(`Found author in Semantic Scholar with query: ${name}`);
+          break;
+        }
+      }
 
       if (!authorId) {
-        this.logger.warn(`Author not found in Semantic Scholar: ${authorName}`);
+        this.logger.warn(`Author not found in Semantic Scholar: ${nameVariations[0]}`);
         return [];
       }
 
-      // Step 2: Fetch author's papers
       const papers = await this.fetchAuthorPapers(authorId, options);
 
-      // Step 3: Parse papers
       for (const paper of papers) {
         const result = this.parsePaper(paper);
         if (result) {
@@ -70,6 +75,26 @@ export class SemanticScholarScraper extends BaseScraper {
     }
 
     return results;
+  }
+
+  private buildNameVariations(firstName: string, lastName: string): string[] {
+    const variations: string[] = [];
+    const cleanLast = lastName === '.' ? '' : lastName.trim();
+
+    if (cleanLast && cleanLast.length > 1) {
+      variations.push(`${firstName} ${cleanLast}`);
+      variations.push(`${cleanLast} ${firstName}`);
+    } else if (cleanLast.length === 1) {
+      // Single initial as last name — try "Initial. FirstName" format
+      variations.push(`${cleanLast} ${firstName}`);
+      variations.push(`${cleanLast}. ${firstName}`);
+      variations.push(`${firstName} ${cleanLast}`);
+    }
+
+    // Always try first name alone as fallback
+    variations.push(firstName);
+
+    return variations;
   }
 
   async searchPublications(
