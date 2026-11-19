@@ -5,17 +5,16 @@ services:
     runtime: node
     region: oregon
     plan: free
-    buildCommand: cd backend && npm install --include=dev && npx prisma generate && npx prisma db push --accept-data-loss && npx prisma db seed && npm run build
-    startCommand: cd backend && node dist/src/main.js
+    buildCommand: >-
+      cd backend &&
+      npm install --include=dev &&
+      export $(grep -v '^#' .env.production | xargs) &&
+      npx prisma generate &&
+      npx prisma db push --accept-data-loss &&
+      npx prisma db seed &&
+      npm run build
+    startCommand: cd backend && export $(grep -v '^#' .env.production | xargs) && node dist/src/main.js
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3000
-      - key: DATABASE_URL
-        sync: false  # Set this in Render dashboard
-      - key: FRONTEND_URL
-        sync: false  # Set this in Render dashboard after deploying frontend
-      - key: JWT_SECRET
-        sync: false  # Set this in Render dashboard
     healthCheckPath: /api/departments
