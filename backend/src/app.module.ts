@@ -13,9 +13,7 @@ import { ScrapersModule } from './modules/scrapers/scrapers.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV === 'production'
-        ? ['.env.production', '.env']
-        : '.env',
+      envFilePath: '.env',
     }),
     ThrottlerModule.forRoot([
       {
