@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { BullModule } from '@nestjs/bull';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from './database/database.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
@@ -9,7 +8,6 @@ import { FacultyModule } from './modules/faculty/faculty.module';
 import { PublicationsModule } from './modules/publications/publications.module';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { ScrapersModule } from './modules/scrapers/scrapers.module';
-import { queueConfig } from './config/queue.config';
 
 @Module({
   imports: [
@@ -24,7 +22,6 @@ import { queueConfig } from './config/queue.config';
       },
     ]),
     ScheduleModule.forRoot(),
-    BullModule.forRoot(queueConfig),
     DatabaseModule,
     DepartmentsModule,
     FacultyModule,

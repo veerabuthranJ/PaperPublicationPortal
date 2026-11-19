@@ -11,6 +11,7 @@ async function bootstrap() {
     'http://localhost:5173',
     'http://localhost:5174',
     'https://paper-publication-portal.vercel.app',
+    'https://paperpublication.vercel.app',
   ];
 
   // Add production frontend URL from environment

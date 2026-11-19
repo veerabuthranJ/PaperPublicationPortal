@@ -228,15 +228,36 @@ export function SearchPage() {
                           <p className="text-sm text-gray-500 mt-1">
                             {f.email}
                           </p>
-                          {f.orcidId && (
-                            <p className="text-sm text-blue-600 mt-2">
-                              ORCID: {f.orcidId}
-                            </p>
-                          )}
+                          <div className="flex flex-wrap items-center gap-3 mt-2">
+                            {(f._count?.authors ?? 0) > 0 && (
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                <BookOpen className="h-4 w-4 mr-1" />
+                                {f._count?.authors} Publications
+                              </span>
+                            )}
+                            {f.orcidId && (
+                              <span className="text-sm text-green-600 font-medium">
+                                ORCID: {f.orcidId}
+                              </span>
+                            )}
+                            {f.googleScholarId && (
+                              <span className="text-sm text-orange-600 font-medium">
+                                Google Scholar ✓
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <button className="text-blue-600 hover:text-blue-800 font-medium">
-                          View Profile →
-                        </button>
+                        <div className="flex flex-col items-end gap-2">
+                          {(f._count?.authors ?? 0) > 0 && (
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-blue-600">{f._count?.authors}</p>
+                              <p className="text-xs text-gray-500">Papers</p>
+                            </div>
+                          )}
+                          <button className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                            View Profile →
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

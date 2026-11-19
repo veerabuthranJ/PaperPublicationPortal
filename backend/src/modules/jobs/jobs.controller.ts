@@ -7,7 +7,6 @@ import {
   Body,
   HttpCode,
   HttpStatus,
-  Delete,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { JobsService } from './jobs.service';
@@ -51,37 +50,5 @@ export class JobsController {
       status,
       facultyId,
     );
-  }
-
-  @Get('stats')
-  @ApiOperation({ summary: 'Get queue statistics' })
-  getStats() {
-    return this.jobsService.getQueueStats();
-  }
-
-  @Get(':jobId')
-  @ApiOperation({ summary: 'Get status of a specific job' })
-  getJobStatus(@Param('jobId') jobId: string) {
-    return this.jobsService.getJobStatus(jobId);
-  }
-
-  @Post(':jobId/retry')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Retry a failed job' })
-  retryJob(@Param('jobId') jobId: string) {
-    return this.jobsService.retryFailedJob(jobId);
-  }
-
-  @Delete(':jobId')
-  @ApiOperation({ summary: 'Cancel a job' })
-  cancelJob(@Param('jobId') jobId: string) {
-    return this.jobsService.cancelJob(jobId);
-  }
-
-  @Post('clean')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Clean old completed and failed jobs' })
-  cleanQueue() {
-    return this.jobsService.cleanQueue();
   }
 }

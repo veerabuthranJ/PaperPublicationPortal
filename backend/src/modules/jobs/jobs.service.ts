@@ -1,7 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { OrchestratorService } from '../scrapers/orchestrator.service';
 
 export interface ScrapingJobData {
   facultyId?: string;
@@ -11,9 +10,11 @@ export interface ScrapingJobData {
 
 @Injectable()
 export class JobsService {
+  private readonly logger = new Logger(JobsService.name);
+
   constructor(
-    @InjectQueue('scraping') private scrapingQueue: Queue,
     private prisma: PrismaService,
+    private orchestrator: OrchestratorService,
   ) {}
 
   async addScrapingJob(data: ScrapingJobData) {
@@ -27,24 +28,69 @@ export class JobsService {
       },
     });
 
-    // Add job to queue
-    const job = await this.scrapingQueue.add('scrape', {
-      ...data,
-      jobRecordId: jobRecord.id,
+    // Run scraping directly (fire-and-forget)
+    this.runScrapingJob(jobRecord.id, data).catch((error) => {
+      this.logger.error(`Scraping job ${jobRecord.id} failed: ${error.message}`);
     });
 
     return {
-      jobId: job.id,
       jobRecordId: jobRecord.id,
-      status: 'queued',
+      status: 'running',
     };
+  }
+
+  private async runScrapingJob(jobRecordId: string, data: ScrapingJobData) {
+    try {
+      await this.prisma.scrapingJob.update({
+        where: { id: jobRecordId },
+        data: { status: 'running', startedAt: new Date() },
+      });
+
+      const sources = data.source === 'all' ? undefined : [data.source];
+      const results = await this.orchestrator.scrapeFaculty(
+        data.facultyId,
+        sources,
+        data.options,
+      );
+
+      const totalFound = results.reduce((sum, r) => sum + r.publicationsFound, 0);
+      const totalAdded = results.reduce((sum, r) => sum + r.publicationsAdded, 0);
+      const totalUpdated = results.reduce((sum, r) => sum + r.publicationsUpdated, 0);
+      const errors = results.flatMap((r) => r.errors);
+
+      await this.prisma.scrapingJob.update({
+        where: { id: jobRecordId },
+        data: {
+          status: 'completed',
+          completedAt: new Date(),
+          publicationsFound: totalFound,
+          publicationsAdded: totalAdded,
+          publicationsUpdated: totalUpdated,
+          errorMessage: errors.length > 0 ? errors.join('; ') : null,
+          metadata: { results } as any,
+        },
+      });
+
+      this.logger.log(
+        `Scraping job ${jobRecordId}: ${totalFound} found, ${totalAdded} added, ${totalUpdated} updated`,
+      );
+    } catch (error) {
+      await this.prisma.scrapingJob.update({
+        where: { id: jobRecordId },
+        data: {
+          status: 'failed',
+          completedAt: new Date(),
+          errorMessage: error.message,
+        },
+      });
+      throw error;
+    }
   }
 
   async scrapeFaculty(facultyId: string, sources?: string[]) {
     const defaultSources = sources || [
       'orcid',
       'google_scholar',
-      'ieee_xplore',
       'semantic_scholar',
     ];
 
@@ -78,26 +124,6 @@ export class JobsService {
     return {
       message: `Started scraping for ${activeFaculty.length} faculty members`,
       totalJobs: jobs.reduce((sum, j) => sum + j.jobs.length, 0),
-    };
-  }
-
-  async getJobStatus(jobId: string) {
-    const job = await this.scrapingQueue.getJob(jobId);
-    if (!job) {
-      return null;
-    }
-
-    const state = await job.getState();
-    const progress = job.progress();
-    const failedReason = job.failedReason;
-
-    return {
-      id: job.id,
-      state,
-      progress,
-      failedReason,
-      data: job.data,
-      returnvalue: job.returnvalue,
     };
   }
 
@@ -147,51 +173,5 @@ export class JobsService {
         totalPages: Math.ceil(total / limit),
       },
     };
-  }
-
-  async getQueueStats() {
-    const [waiting, active, completed, failed, delayed] = await Promise.all([
-      this.scrapingQueue.getWaitingCount(),
-      this.scrapingQueue.getActiveCount(),
-      this.scrapingQueue.getCompletedCount(),
-      this.scrapingQueue.getFailedCount(),
-      this.scrapingQueue.getDelayedCount(),
-    ]);
-
-    return {
-      waiting,
-      active,
-      completed,
-      failed,
-      delayed,
-      total: waiting + active + completed + failed + delayed,
-    };
-  }
-
-  async cleanQueue() {
-    await this.scrapingQueue.clean(3600000, 'completed'); // Clean completed jobs older than 1 hour
-    await this.scrapingQueue.clean(86400000, 'failed'); // Clean failed jobs older than 1 day
-
-    return { message: 'Queue cleaned successfully' };
-  }
-
-  async retryFailedJob(jobId: string) {
-    const job = await this.scrapingQueue.getJob(jobId);
-    if (!job) {
-      throw new Error('Job not found');
-    }
-
-    await job.retry();
-    return { message: 'Job retry initiated', jobId };
-  }
-
-  async cancelJob(jobId: string) {
-    const job = await this.scrapingQueue.getJob(jobId);
-    if (!job) {
-      throw new Error('Job not found');
-    }
-
-    await job.remove();
-    return { message: 'Job cancelled successfully', jobId };
   }
 }

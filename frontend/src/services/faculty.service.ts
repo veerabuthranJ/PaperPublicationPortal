@@ -7,12 +7,16 @@ export interface Faculty {
   email: string;
   title?: string;
   orcidId?: string;
+  googleScholarId?: string;
   profileImageUrl?: string;
   bio?: string;
   department?: {
     id: string;
     name: string;
     code: string;
+  };
+  _count?: {
+    authors: number;
   };
 }
 
